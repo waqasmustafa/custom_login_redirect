@@ -9,9 +9,11 @@ class CustomLoginRedirect(Home):
     def web_login(self, redirect=None, **kw):
         response = super().web_login(redirect=redirect, **kw)
 
-        # Agar login successful ho chuka hai
+        # Check if login was successful
         if request.session.uid:
-            user = request.env.user
+            # In auth='none' routes, request.env.user is an empty recordset.
+            # We must browse the user explicitly using sudo() to get a valid singleton.
+            user = request.env['res.users'].sudo().browse(request.session.uid)
 
             # Internal users (admin/staff) ko redirect na karo
             is_internal_user = user.has_group('base.group_user')
